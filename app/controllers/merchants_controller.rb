@@ -110,11 +110,20 @@ class MerchantsController < ApplicationController
     # Access Response
     if @get_express_checkout_details_response.Ack=="Success"
       puts "SUCCESS"
+
+
       puts "PayerID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerID}"
+      puts ""
+      # Cuidado porque este campo n está disponivel antes do do_chekout, perguntar noutro campo
+      # Maybe... @CheckoutStatus="PaymentActionCompleted"
+      puts "TransactionID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.inspect}"
+      puts ""
       #puts "CheckoutDetails #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails}"
       #puts "PaymentDetails #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails}"
       puts "CheckoutStatus #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.CheckoutStatus}"
-      puts "Response INSPECT  #{@get_express_checkout_details_response.inspect}"
+
+      # puts "Response INSPECT  #{@get_express_checkout_details_response.inspect.split}"
+      "#{@get_express_checkout_details_response.inspect}".split(',').each {|s| puts s}
       redirect_to root_path
     else
       puts "FAILURE"
