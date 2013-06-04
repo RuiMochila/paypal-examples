@@ -1,0 +1,38 @@
+<h1>Listing products</h1>
+
+<%= form_tag(:controller => "merchants", :action => "set_checkout", :method => "post")  do  %>
+   <%= label_tag "Price" %>
+    <%= text_field_tag :value %>
+    <%= submit_tag("Set Checkout") %>
+<% end %>
+
+<%= form_tag(:controller => "merchants", :action => "get_checkout", :method => "post")  do  %>
+   <%= label_tag "Token" %>
+    <%= text_field_tag :token %>
+    <%= submit_tag("Get Checkout") %>
+<% end %>
+
+<%= form_tag(:controller => "merchants", :action => "do_checkout", :method => "post")  do  %>
+   <%= label_tag "Token" %>
+    <%= text_field_tag :token %>
+    <%= label_tag "Payer" %>
+    <%= text_field_tag :payerID %>
+    <%= label_tag "Price" %>
+    <%= text_field_tag :value %>
+    <%= submit_tag("Do Checkout") %>
+<% end %>
+
+<%= form_tag(:controller => "merchants", :action => "do_capture", :method => "post")  do  %>
+   <%= label_tag "TransactionID" %>
+    <%= text_field_tag :transactionID %>
+    <%= label_tag "Price" %>
+    <%= text_field_tag :value %>
+    <%= submit_tag("Do Capture") %>
+<% end %>
+
+<%= form_tag(:controller => "merchants", :action => "do_void", :method => "post")  do  %>
+   <%= label_tag "TransactionID" %>
+    <%= text_field_tag :transactionID %>
+    <%= submit_tag("Do Void") %>
+<% end %>
+

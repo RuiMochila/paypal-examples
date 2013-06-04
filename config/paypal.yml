@@ -1,0 +1,51 @@
+test: &default
+
+  # Credentials for REST APIs
+  #client_id: EBWKjlELKMYqRNQ6sYvFo64FtaRLRR5BdHEESmha49TM #default
+  #client_id: KBDsvUR8oH63jM5ODq41xSbcvqDp0Dtp3omISeza7NaG79X6L80dOkL9 #o meu
+  client_id: AcR-KBDsvUR8oH63jM5ODq41xSbcvqDp0Dtp3omISeza7NaG79X6L80dOkL9 #da live app?
+
+  #client_secret: EO422dn3gQLgDbuwqTjzrFgFtaRLRR5BdHEESmha49TM #default
+  #client_secret: EBM4LRAeFzv7mSpevqm3glcUmJYP4EeXNQORrJKFSQZ3TmeA4sil9ZCgmIds #o meu
+  client_secret: EBM4LRAeFzv7mSpevqm3glcUmJYP4EeXNQORrJKFSQZ3TmeA4sil9ZCgmIds #da live app?
+
+  # Mode can be 'live' or 'sandbox'
+  mode: sandbox
+
+  # Credentials for Classic APIs
+  app_id: APP-80W284485P519543T #constante para teste. é substituida no live pela que a paypal atribuir.
+  app_id: #da live app que tinha no site
+
+  #username: jb-us-seller_api1.paypal.com #default
+  #username: rui.mochila-facilitator_api1.gmail.com #1
+  username: rui.mochila-seller_api1.gmail.com #2
+
+  #password: WX4WTU3S8MY44S7F #default
+  #password: 1369063204 #1
+  password: 1369230567 #2
+
+  #signature: AFcWxV21C7fd0v3bYYYRCpSSRl31A7yDhhsPUU2XhtMoZXsWHFxu-RWy #default
+  #signature: AiPC9BjkCyDFQXbSkoZcgqH3hpacARrTM-fmGZ-8S2Goo-HZHK4lU2oU #1
+  signature: Apasn32yQbeHjksWjj351rXDPBhkA8z2V6hZ0zCFhvxM1YdB-4pb4rMs #2
+
+  # # With Certificate
+  # cert_path: "config/cert_key.pem"
+
+  #sandbox_email_address: Platform.sdk.seller@gmail.com #default
+  #sandbox_email_address: rui.mochila-facilitator@gmail.com
+  sandbox_email_address: rui.mochila-seller@gmail.com #2
+
+
+  http_timeout: 30
+
+  # # IP Address
+  # ip_address: 127.0.0.1
+  # # HTTP Proxy
+  # http_proxy: http://proxy-ipaddress:3129/
+
+development:
+  <<: *default
+
+production:
+  <<: *default
+  mode: live
