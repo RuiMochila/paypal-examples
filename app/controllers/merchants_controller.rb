@@ -114,16 +114,26 @@ class MerchantsController < ApplicationController
 
       puts "PayerID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerID}"
       puts ""
-      # Cuidado porque este campo n está disponivel antes do do_chekout, perguntar noutro campo
-      # Maybe... @CheckoutStatus="PaymentActionCompleted"
-      puts "TransactionID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.inspect}"
-      puts ""
+
       #puts "CheckoutDetails #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails}"
       #puts "PaymentDetails #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails}"
       puts "CheckoutStatus #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.CheckoutStatus}"
+      # Este status vai ser controlado para saber se está pago ou não. 
+      # Logo no set express -> PaymentActionNotInitiated
+      # Após o pagamento passa a -> PaymentActionCompleted
+      puts ""
 
-      # puts "Response INSPECT  #{@get_express_checkout_details_response.inspect.split}"
-      "#{@get_express_checkout_details_response.inspect}".split(',').each {|s| puts s}
+
+      # Cuidado porque este campo n está disponivel antes do do_chekout, perguntar noutro campo
+      # Maybe... @CheckoutStatus="PaymentActionCompleted"
+      if(@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.CheckoutStatus=="PaymentActionCompleted"){
+        puts "TransactionID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId}"
+        puts ""
+      }
+
+
+      # # puts "Response INSPECT  #{@get_express_checkout_details_response.inspect.split}"
+      # "#{@get_express_checkout_details_response.inspect}".split(',').each {|s| puts s}
       redirect_to root_path
     else
       puts "FAILURE"
@@ -204,6 +214,70 @@ class MerchantsController < ApplicationController
     #      :value => "0.00" },
     #    :InsuranceOptionOffered => "false" }] } }
 
+    # APÓS PAGAMENTO
+  #   {
+  # :Timestamp => "2013-06-05T13:42:55+00:00",
+  # :Ack => "Success",
+  # :CorrelationID => "e73f7f03848e",
+  # :Version => "98.0",
+  # :Build => "6202528",
+  # :GetExpressCheckoutDetailsResponseDetails => {
+  #   :Token => "EC-2NK67790GJ383324H",
+  #   :PayerInfo => {
+  #     :Payer => "rui.mochila-test.sender2@gmail.com",
+  #     :PayerID => "KGYEJ9Z9FHT74",
+  #     :PayerStatus => "verified",
+  #     :PayerName => {
+  #       :FirstName => "Rui",
+  #       :LastName => "Mochila" },
+  #     :PayerCountry => "US",
+  #     :Address => {
+  #       :Name => "John Doe",
+  #       :Street1 => "1 Main St",
+  #       :CityName => "San Jose",
+  #       :StateOrProvince => "CA",
+  #       :Country => "US",
+  #       :CountryName => "United States",
+  #       :PostalCode => "95131",
+  #       :AddressOwner => "PayPal",
+  #       :AddressStatus => "Confirmed" } },
+  #   :CheckoutStatus => "PaymentActionCompleted",
+  #   :PaymentDetails => [{
+  #     :OrderTotal => {
+  #       :currencyID => "USD",
+  #       :value => "5.00" },
+  #     :ShippingTotal => {
+  #       :currencyID => "USD",
+  #       :value => "0.00" },
+  #     :HandlingTotal => {
+  #       :currencyID => "USD",
+  #       :value => "0.00" },
+  #     :TaxTotal => {
+  #       :currencyID => "USD",
+  #       :value => "0.00" },
+  #     :NotifyURL => "https://paypal-sdk-samples.herokuapp.com/merchant/ipn_notify",
+  #     :ShipToAddress => {
+  #       :Name => "John Doe",
+  #       :Street1 => "1 Main St",
+  #       :CityName => "San Jose",
+  #       :StateOrProvince => "CA",
+  #       :Country => "US",
+  #       :CountryName => "United States",
+  #       :PostalCode => "95131",
+  #       :AddressOwner => "PayPal",
+  #       :AddressStatus => "Confirmed",
+  #       :AddressNormalizationStatus => "None" },
+  #     :InsuranceTotal => {
+  #       :currencyID => "USD",
+  #       :value => "0.00" },
+  #     :ShippingDiscount => {
+  #       :currencyID => "USD",
+  #       :value => "0.00" },
+  #     :InsuranceOptionOffered => "false",
+  #     :TransactionId => "05498390PX0375310" }],
+  #   :PaymentRequestInfo => [{
+  #     :TransactionId => "05498390PX0375310" }] } }
+
 
 #{
 #  :Timestamp => "2013-05-23T18:25:09+00:00",
@@ -261,7 +335,7 @@ class MerchantsController < ApplicationController
       puts "SUCCESS"
       puts "PaymentInfo #{@do_express_checkout_payment_response.DoExpressCheckoutPaymentResponseDetails.PaymentInfo}"
       #THE WALK OF SHAME!! THE WALK OF SHAME!! THE WALK OF SHAME!! THE WALK OF SHAME!!
-      #Não consigo aceder de maneira nenhuma, API muito fraquinha.
+      #Não consigo aceder de maneira nenhuma, API muito fraquinha. Vou fazer pela outra request
       puts "TransactionID #{@do_express_checkout_payment_response.DoExpressCheckoutPaymentResponseDetails.PaymentInfo.inspect[79..95]}"
       redirect_to root_path
       #@do_express_checkout_payment_response.FMFDetails
