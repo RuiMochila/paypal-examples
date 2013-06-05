@@ -126,10 +126,10 @@ class MerchantsController < ApplicationController
 
       # Cuidado porque este campo n está disponivel antes do do_chekout, perguntar noutro campo
       # Maybe... @CheckoutStatus="PaymentActionCompleted"
-      if(@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.CheckoutStatus=="PaymentActionCompleted"){
+      if @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.CheckoutStatus=="PaymentActionCompleted"
         puts "TransactionID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId}"
         puts ""
-      }
+      end
 
 
       # # puts "Response INSPECT  #{@get_express_checkout_details_response.inspect.split}"
