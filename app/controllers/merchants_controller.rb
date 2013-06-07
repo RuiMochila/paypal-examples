@@ -342,23 +342,30 @@ class MerchantsController < ApplicationController
         
         #Verificar value pago aqui
         #Martela a string
-        order = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.inspect
-        puts "Order #{order}"
+        # order = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.inspect
+        # puts "Order #{order}"
 
-        currency = order[order.index('currency'), 16]
-        puts "Currency all #{currency}"
-        #puts "Currency #{currency[currency.index('"')+1, 3]}"
-        puts "Currency #{currency[currency.index('"')+1, 3]}"
-        #puts "#{currency.rindex('"')-1}"
+        # currency = order[order.index('currency'), 16]
+        # puts "Currency all #{currency}"
+        
+        # puts ""
+        
+        # puts "Currency #{currency[currency.index('"')+1, 3]}"
+        # #puts "#{currency.rindex('"')-1}"
 
-        value = order[order.index('value'), 16]
-        puts "Value all #{value}"
-        puts "Value #{value[value.index('"')+1, value.index('.')]}"
+        # valueString = order[order.index('value'), 16]
+        # puts "Value all #{valueString}"
+        # #ind = valueString.rindex('"')
+        # #puts "Value #{valueString[valueString.index('"')+1..-ind]}"
 
-        if @get_express_checkout_details_response.
-          GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.currencyID == "EUR" &&
-          @get_express_checkout_details_response.
-          GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.value == value
+        # r1 = Regexp.new( '[\d.]')
+
+        # puts "Value #{valueString[r1]}"
+
+        # if @get_express_checkout_details_response.
+        #   GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.currencyID == "EUR" &&
+        #   @get_express_checkout_details_response.
+        #   GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.value == value
 
           transaction.user_email = @get_express_checkout_details_response.
           GetExpressCheckoutDetailsResponseDetails.PayerInfo.Payer
@@ -391,11 +398,19 @@ class MerchantsController < ApplicationController
             @get_express_checkout_details = @api.build_get_express_checkout_details({
               :Token => token })
             @get_express_checkout_details_response = @api.get_express_checkout_details(@get_express_checkout_details)
-            transaction.transaction_id = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId
+            aux = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentRequestInfo.to_s
+            puts "This is the aux #{aux}"
+            transaction.transaction_id = aux[aux.index('TransactionId')+14, 18]
+            puts "O transaction ID que saiu #{transaction.transaction_id}"
             transaction.payment_state = 'Authorized'
-            transaction.save
 
-            puts "Transaction Complete: #{transaction.inspect}"
+            if transaction.save
+              puts "SUCCESS SAVE #{transaction.inspect}"
+            else
+              puts "FAILURE SAVE"
+            end
+
+            #puts "Transaction Complete: #{transaction.inspect}"
             # ir buscar a campanha referente a esta transaction e fazer render campaign show , passar param?
             redirect_to root_path
             
@@ -404,9 +419,9 @@ class MerchantsController < ApplicationController
             redirect_to root_path
           end
 
-        else
-          puts "Nao tinha o mesmo valor e currency Espertinhos"
-        end
+        # else
+        #   puts "Nao tinha o mesmo valor e currency Espertinhos"
+        # end
       else
         puts "O pagamento nao foi concluido"
       end
