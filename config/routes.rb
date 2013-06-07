@@ -20,7 +20,7 @@ PaypalExamples::Application.routes.draw do
     match 'do_void', :on => :collection, :via => [:post] #put?
   end  
 
-  match '/return',  to: 'merchants#do_checkout'
+  match '/return',  to: 'merchants#checkout'
   match '/cancel',  to: 'merchants#cancel'
 
   mount MerchantSamples::Engine => "/samples" if Rails.env.development?

@@ -315,47 +315,90 @@ class MerchantsController < ApplicationController
     
     token = params[:token]
     payerID = params[:PayerID]
-
-    # Parte referente ao get checkout para pedir dados
-    transaction = Transaction.find_by_token(token)
-
-    #que situações tenho ed contemplar aqui? verificar os valores?
-
-
     # value = params[:value] #Tem de se ir buscar à BD, comparar o da BD com o no get_checkout
 
-    @api = PayPal::SDK::Merchant::API.new
+    #Temos um payerID, faz get_checkout e pergunta pelo valor e estado de pagamento
+    transaction = Transaction.find_by_token(token)
+    value = transaction.value
 
+    @api = PayPal::SDK::Merchant::API.new
     # Build request object
-    @do_express_checkout_payment = @api.build_do_express_checkout_payment({
-      :DoExpressCheckoutPaymentRequestDetails => {
-        :PaymentAction => "Authorization", #Ou Sale
-        :Token => token,
-        :PayerID => payerID,
-        :PaymentDetails => [{
-          :OrderTotal => {
-            :currencyID => "EUR",
-            :value => value },
-          :NotifyURL => "https://paypal-sdk-samples.herokuapp.com/merchant/ipn_notify" }] } })
+    @get_express_checkout_details = @api.build_get_express_checkout_details({
+      :Token => token })
 
     # Make API call & get response
-    @do_express_checkout_payment_response = @api.do_express_checkout_payment(@do_express_checkout_payment)
+    @get_express_checkout_details_response = @api.get_express_checkout_details(@get_express_checkout_details)
 
-    # Access Response
-    if @do_express_checkout_payment_response.Ack=="Success"
+    if @get_express_checkout_details_response.Ack=="Success"
       puts "SUCCESS"
-      puts "PaymentInfo #{@do_express_checkout_payment_response.DoExpressCheckoutPaymentResponseDetails.PaymentInfo}"
-      #THE WALK OF SHAME!! THE WALK OF SHAME!! THE WALK OF SHAME!! THE WALK OF SHAME!!
-      #Não consigo aceder de maneira nenhuma, API muito fraquinha. Vou fazer pela outra request
-      puts "TransactionID #{@do_express_checkout_payment_response.DoExpressCheckoutPaymentResponseDetails.PaymentInfo.inspect[79..95]}"
-      redirect_to root_path
-      #@do_express_checkout_payment_response.FMFDetails
+      if @get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerStatus=="verified"
+        puts "TransactionID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId}"
+        #Verificar value pago aqui
+        if @get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.currencyID == "EUR" &&
+              @get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.value == value
+
+          transaction.user_email = @get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.PayerInfo.Payer
+
+          transaction.payer_id = @get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerID
+
+          transaction.user_name = @get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerName.FirstName + " " + @get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerName.LastName
+
+          # Build request object
+          @do_express_checkout_payment = @api.build_do_express_checkout_payment({
+            :DoExpressCheckoutPaymentRequestDetails => {
+              :PaymentAction => "Authorization", #Ou Sale
+              :Token => token,
+              :PayerID => payerID,
+              :PaymentDetails => [{
+                :OrderTotal => {
+                  :currencyID => "EUR",
+                  :value => value },
+                :NotifyURL => "https://paypal-sdk-samples.herokuapp.com/merchant/ipn_notify" }] } })
+
+          # Make API call & get response
+          @do_express_checkout_payment_response = @api.do_express_checkout_payment(@do_express_checkout_payment)
+
+          # Access Response
+          if @do_express_checkout_payment_response.Ack=="Success"
+            
+            @get_express_checkout_details = @api.build_get_express_checkout_details({
+              :Token => token })
+            @get_express_checkout_details_response = @api.get_express_checkout_details(@get_express_checkout_details)
+            transaction.transaction_id = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId
+
+            transaction.save
+
+            # ir buscar a campanha referente a esta transaction e fazer render campaign show , passar param?
+            redirect_to root_path
+            
+          else
+            puts "ERRORS #{@do_express_checkout_payment_response.Errors}"
+            redirect_to root_path
+          end
+
+        else
+          puts "Não tinha o mesmo valor e currency?? Espertinhos"
+        end
+      else
+        puts "O pagamento não foi concluido??"
+      end
+
+    
     else
       puts "FAILURE"
-      puts "ERRORS #{@do_express_checkout_payment_response.Errors}"
-      redirect_to root_path
+      puts "#{@get_express_checkout_details_response.Errors}"
     end
 
+
+
+   
     #  {
     #:Timestamp => "2013-05-23T16:38:48+00:00",
     #:Ack => "Success",
