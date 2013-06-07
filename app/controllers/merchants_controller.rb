@@ -1,8 +1,8 @@
 class MerchantsController < ApplicationController
 
   def set_checkout
-    value = params[:value]
-
+    value = params[:value] #o value vai buscar através do preço estipulado na bd, converter formato xx.xx
+    #faltam os outros parametros de produto e cliente
 
     @api = PayPal::SDK::Merchant::API.new
 
@@ -61,6 +61,8 @@ class MerchantsController < ApplicationController
     # Access Response
     if @set_express_checkout_response.Ack=="Success"
       puts "SUCCESS"
+      transaction = Transaction.new(token: @set_express_checkout_response.Token, value: value, payment_state: 'Initiated', user_id: 1, product_id: 1)
+      transaction.save
       puts "#{@set_express_checkout_response.Token}" #guardar token
       redirect_to "https://www.sandbox.paypal.com/webscr?cmd=_express-checkout&token=#{@set_express_checkout_response.Token}"
     else
@@ -313,6 +315,13 @@ class MerchantsController < ApplicationController
     
     token = params[:token]
     payerID = params[:PayerID]
+
+    # Parte referente ao get checkout para pedir dados
+    transaction = Transaction.find_by_token(token)
+
+    #que situações tenho ed contemplar aqui? verificar os valores?
+
+
     # value = params[:value] #Tem de se ir buscar à BD, comparar o da BD com o no get_checkout
 
     @api = PayPal::SDK::Merchant::API.new
