@@ -61,8 +61,10 @@ class MerchantsController < ApplicationController
     # Access Response
     if @set_express_checkout_response.Ack=="Success"
       puts "SUCCESS"
-      transaction = Transaction.new(token: @set_express_checkout_response.Token, value: value, payment_state: 'Initiated', user_id: 1, product_id: 1)
-      transaction.save
+      transaction = Transaction.new(token: @set_express_checkout_response.Token, value: value, payment_state: 'Initiated', product_id: 1)
+      if transaction.save
+        puts "Transaction created #{transaction.inspect}"
+      end
       puts "#{@set_express_checkout_response.Token}" #guardar token
       redirect_to "https://www.sandbox.paypal.com/webscr?cmd=_express-checkout&token=#{@set_express_checkout_response.Token}"
     else
@@ -310,7 +312,7 @@ class MerchantsController < ApplicationController
   end
 
 
-
+  #http://localhost:3000/return?token=EC-68X85466U8198983V&PayerID=KGYEJ9Z9FHT74
   def do_checkout
     
     token = params[:token]
@@ -320,6 +322,7 @@ class MerchantsController < ApplicationController
     #Temos um payerID, faz get_checkout e pergunta pelo valor e estado de pagamento
     transaction = Transaction.find_by_token(token)
     value = transaction.value
+    puts "Transaction found #{transaction.inspect}"
 
     @api = PayPal::SDK::Merchant::API.new
     # Build request object
@@ -331,24 +334,41 @@ class MerchantsController < ApplicationController
 
     if @get_express_checkout_details_response.Ack=="Success"
       puts "SUCCESS"
+
       if @get_express_checkout_details_response.
-              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerStatus=="verified"
-        puts "TransactionID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId}"
+        GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerStatus=="verified"
+
+        #puts "TransactionID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId}"
+        
         #Verificar value pago aqui
+        #Martela a string
+        order = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.inspect
+        puts "Order #{order}"
+
+        currency = order[order.index('currency'), 16]
+        puts "Currency all #{currency}"
+        #puts "Currency #{currency[currency.index('"')+1, 3]}"
+        puts "Currency #{currency[currency.index('"')+1, 3]}"
+        #puts "#{currency.rindex('"')-1}"
+
+        value = order[order.index('value'), 16]
+        puts "Value all #{value}"
+        puts "Value #{value[value.index('"')+1, value.index('.')]}"
+
         if @get_express_checkout_details_response.
-              GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.currencyID == "EUR" &&
-              @get_express_checkout_details_response.
-              GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.value == value
+          GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.currencyID == "EUR" &&
+          @get_express_checkout_details_response.
+          GetExpressCheckoutDetailsResponseDetails.PaymentDetails.OrderTotal.value == value
 
           transaction.user_email = @get_express_checkout_details_response.
-              GetExpressCheckoutDetailsResponseDetails.PayerInfo.Payer
+          GetExpressCheckoutDetailsResponseDetails.PayerInfo.Payer
 
           transaction.payer_id = @get_express_checkout_details_response.
-              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerID
+          GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerID
 
           transaction.user_name = @get_express_checkout_details_response.
-              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerName.FirstName + " " + @get_express_checkout_details_response.
-              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerName.LastName
+          GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerName.FirstName + " " + @get_express_checkout_details_response.
+          GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerName.LastName
 
           # Build request object
           @do_express_checkout_payment = @api.build_do_express_checkout_payment({
@@ -360,21 +380,22 @@ class MerchantsController < ApplicationController
                 :OrderTotal => {
                   :currencyID => "EUR",
                   :value => value },
-                :NotifyURL => "https://paypal-sdk-samples.herokuapp.com/merchant/ipn_notify" }] } })
+                  :NotifyURL => "https://paypal-sdk-samples.herokuapp.com/merchant/ipn_notify" }] } })
 
           # Make API call & get response
           @do_express_checkout_payment_response = @api.do_express_checkout_payment(@do_express_checkout_payment)
 
           # Access Response
           if @do_express_checkout_payment_response.Ack=="Success"
-            
+
             @get_express_checkout_details = @api.build_get_express_checkout_details({
               :Token => token })
             @get_express_checkout_details_response = @api.get_express_checkout_details(@get_express_checkout_details)
             transaction.transaction_id = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId
-
+            transaction.payment_state = 'Authorized'
             transaction.save
 
+            puts "Transaction Complete: #{transaction.inspect}"
             # ir buscar a campanha referente a esta transaction e fazer render campaign show , passar param?
             redirect_to root_path
             
@@ -384,13 +405,13 @@ class MerchantsController < ApplicationController
           end
 
         else
-          puts "Não tinha o mesmo valor e currency?? Espertinhos"
+          puts "Nao tinha o mesmo valor e currency Espertinhos"
         end
       else
-        puts "O pagamento não foi concluido??"
+        puts "O pagamento nao foi concluido"
       end
 
-    
+
     else
       puts "FAILURE"
       puts "#{@get_express_checkout_details_response.Errors}"
@@ -429,6 +450,11 @@ class MerchantsController < ApplicationController
 
 
   end
+
+  def cancel
+    
+  end
+
 
   def do_capture
     transactionID = params[:transactionID]

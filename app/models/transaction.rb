@@ -8,10 +8,11 @@
 #  value          :float
 #  transaction_id :string(255)
 #  payment_state  :string(255)
-#  user_id        :integer
 #  product_id     :integer
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
+#  user_email     :string(255)
+#  user_name      :string(255)
 #
 
 class Transaction < ActiveRecord::Base
@@ -20,5 +21,5 @@ class Transaction < ActiveRecord::Base
 
   validates :payment_state,
     :inclusion  => { :in => [ 'Initiated', 'Authorized', 'Voided', 'Captured' ] }
-    
+   
 end
