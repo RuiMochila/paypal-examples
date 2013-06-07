@@ -10,8 +10,8 @@ class MerchantsController < ApplicationController
     @set_express_checkout = @api.build_set_express_checkout({
       :SetExpressCheckoutRequestDetails => {
         #:ReturnURL => "https://paypal-sdk-samples.herokuapp.com/merchant/do_express_checkout_payment",
-        :ReturnURL => "http://localhost:3000",
-        :CancelURL => "https://paypal-sdk-samples.herokuapp.com/merchant/set_express_checkout",
+        :ReturnURL => "http://localhost:3000/return",
+        :CancelURL => "https://localhost:3000/cancelPayment",
         
         :PaymentDetails => [{
           
@@ -112,12 +112,14 @@ class MerchantsController < ApplicationController
       puts "SUCCESS"
 
 
-      puts "PayerID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerID}"
+      puts "PayerID #{@get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.PayerInfo.PayerID}"
       puts ""
 
       #puts "CheckoutDetails #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails}"
       #puts "PaymentDetails #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails}"
-      puts "CheckoutStatus #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.CheckoutStatus}"
+      puts "CheckoutStatus #{@get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.CheckoutStatus}"
       # Este status vai ser controlado para saber se está pago ou não. 
       # Logo no set express -> PaymentActionNotInitiated
       # Após o pagamento passa a -> PaymentActionCompleted
@@ -126,7 +128,8 @@ class MerchantsController < ApplicationController
 
       # Cuidado porque este campo n está disponivel antes do do_chekout, perguntar noutro campo
       # Maybe... @CheckoutStatus="PaymentActionCompleted"
-      if @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.CheckoutStatus=="PaymentActionCompleted"
+      if @get_express_checkout_details_response.
+              GetExpressCheckoutDetailsResponseDetails.CheckoutStatus=="PaymentActionCompleted"
         puts "TransactionID #{@get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentDetails.TransactionId}"
         puts ""
       end
@@ -307,11 +310,10 @@ class MerchantsController < ApplicationController
 
 
   def do_checkout
-    #passo nos params ou um Authorization ou Sale
-    #ou para n confundir por agora... duplico?
+    
     token = params[:token]
-    payerID = params[:payerID]
-    value = params[:value]
+    payerID = params[:PayerID]
+    # value = params[:value] #Tem de se ir buscar à BD, comparar o da BD com o no get_checkout
 
     @api = PayPal::SDK::Merchant::API.new
 
