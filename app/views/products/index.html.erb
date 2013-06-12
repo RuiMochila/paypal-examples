@@ -39,7 +39,6 @@
 <br/>
 <h1>Listing Transactions</h1>
 
-Transaction id: 13, token: "EC-39M28487E9852751U", payer_id: "KGYEJ9Z9FHT74", value: 10.0, transaction_id: "3AK57799A5362114G", payment_state: "Authorized", product_id: 1, created_at: "2013-06-11 18:12:41", updated_at: "2013-06-11 18:13:01", user_email: "rui.mochila-test.sender2@gmail.com", user_name: "Rui Mochila"
 
 <table>
   <tr>
@@ -51,6 +50,8 @@ Transaction id: 13, token: "EC-39M28487E9852751U", payer_id: "KGYEJ9Z9FHT74", va
     <th>Product ID</th>
     <th>Value</th>
     <th>State</th>
+    <th>Color</th>
+    <th>Size</th>
   </tr>
 
 <% @transactions.each do |transaction| %>
@@ -63,12 +64,14 @@ Transaction id: 13, token: "EC-39M28487E9852751U", payer_id: "KGYEJ9Z9FHT74", va
     <td><%= transaction.product_id %></td>
     <td><%= transaction.value %></td>
     <td><%= transaction.payment_state %></td>
+    <td><%= transaction.color %></td>
+    <td><%= transaction.size %></td>
 
-    <%= form_tag(:controller => "merchants", :action => "do_capture", :method => "post")  do  %>
-      <%= hidden_field :transaction_id, value: transaction.transaction_id %>
-      <%= hidden_field :value, value: transaction.value %>
+    <td><%= form_tag(:controller => "merchants", :action => "do_capture", :method => "post")  do  %>
+      <%= hidden_field_tag 'transaction_id', transaction.transaction_id %>
+      <%= hidden_field_tag 'value', transaction.value %>
       <%= submit_tag("Capture") %>
-    <% end %>
+    <% end %></td>
 
   </tr>
 <% end %>

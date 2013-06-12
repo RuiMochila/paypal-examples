@@ -400,6 +400,8 @@ class MerchantsController < ApplicationController
             @get_express_checkout_details = @api.build_get_express_checkout_details({
               :Token => token })
             @get_express_checkout_details_response = @api.get_express_checkout_details(@get_express_checkout_details)
+            transaction.checkout_details = @get_express_checkout_details_response.to_s
+            puts "This are the checkout details #{transaction.checkout_details}"
             aux = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentRequestInfo.to_s
             puts "This is the aux #{aux}"
             transaction.transaction_id = aux[aux.index('TransactionId')+15, 17]
@@ -474,8 +476,14 @@ class MerchantsController < ApplicationController
 
 
   def do_capture
-    transactionID = params[:transactionID]
+    puts "Params #{params}"
+    puts "Transaction id #{params[:transaction_id]}"
+    transactionID = params[:transaction_id]
+    puts "Value #{params[:value]}"
     value = params[:value]
+
+    @transaction = transaction = Transaction.find_by_transaction_id(transactionID)
+
 
     @api = PayPal::SDK::Merchant::API.new
 
@@ -494,6 +502,8 @@ class MerchantsController < ApplicationController
     if @do_capture_response.Ack=="Success"
       puts "SUCCESS"
       puts "RESPONSE DETAILS #{@do_capture_response.DoCaptureResponseDetails}"
+      @transaction.payment_state = "Captured"
+      @transaction.save
       redirect_to root_path
     else
       puts "FAILURE"

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130607154130) do
+ActiveRecord::Schema.define(:version => 20130612135857) do
 
   create_table "transactions", :force => true do |t|
     t.string   "token"
@@ -20,10 +20,13 @@ ActiveRecord::Schema.define(:version => 20130607154130) do
     t.string   "transaction_id"
     t.string   "payment_state"
     t.integer  "product_id"
-    t.datetime "created_at",     :null => false
-    t.datetime "updated_at",     :null => false
+    t.datetime "created_at",       :null => false
+    t.datetime "updated_at",       :null => false
     t.string   "user_email"
     t.string   "user_name"
+    t.string   "checkout_details"
+    t.string   "color"
+    t.string   "size"
   end
 
   add_index "transactions", ["payer_id"], :name => "index_transactions_on_payer_id"
