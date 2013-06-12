@@ -400,7 +400,7 @@ class MerchantsController < ApplicationController
             @get_express_checkout_details = @api.build_get_express_checkout_details({
               :Token => token })
             @get_express_checkout_details_response = @api.get_express_checkout_details(@get_express_checkout_details)
-            transaction.checkout_details = @get_express_checkout_details_response.to_s
+            transaction.checkout_details = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.inspect
             puts "This are the checkout details #{transaction.checkout_details}"
             aux = @get_express_checkout_details_response.GetExpressCheckoutDetailsResponseDetails.PaymentRequestInfo.to_s
             puts "This is the aux #{aux}"
@@ -548,8 +548,8 @@ class MerchantsController < ApplicationController
   end
 
   def do_void
-    transactionID = params[:transactionID]
-
+    transactionID = params[:transaction_id]
+    @transaction = transaction = Transaction.find_by_transaction_id(transactionID)
     @api = PayPal::SDK::Merchant::API.new
 
     # Build request object
@@ -562,6 +562,8 @@ class MerchantsController < ApplicationController
     # Access Response
     if @do_void_response.Ack=="Success"
       puts "SUCCESS"
+      @transaction.payment_state = "Voided"
+      @transaction.save
       puts "AUTH ID #{@do_void_response.AuthorizationID}"
       #@do_void_response.MsgSubID
       redirect_to root_path
